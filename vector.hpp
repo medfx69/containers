@@ -88,10 +88,16 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			    T* mPtr;
 		};
 
+		typedef const iterator const_iterator;
+		typedef const revers_iterator const_revers_iterator;
 		iterator begin() { return iterator(&v_data[0]); }
 		iterator end()   { return iterator(&v_data[v_size - 1]); } 
+		const_iterator begin() const{ return iterator(&v_data[0]); }
+		const_iterator end()   const{ return iterator(&v_data[v_size - 1]); } 
 		revers_iterator begin(T) { return revers_iterator(&v_data[v_size - 1]); }
 		revers_iterator end(T)   { return revers_iterator(&v_data[0]); } 
+		const_revers_iterator begin(T)const { return revers_iterator(&v_data[v_size - 1]); }
+		const_revers_iterator end(T)  const { return revers_iterator(&v_data[0]); } 
 	// 	typedef typename iterator;
 	// 	typedef typename const_iterator;
 	// // constractors -----------------------------------------------------------------------------------------------------------
