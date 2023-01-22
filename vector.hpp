@@ -9,6 +9,7 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		T *v_data;
 		Alloc alloc;
 		size_t v_size;
+		size_t v_capacity;
 	public:
 		class iterator
 		{
@@ -90,6 +91,7 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 
 		typedef const iterator const_iterator;
 		typedef T& reference;
+		typedef Alloc allocator_type;
 		typedef size_t size_type;
 		typedef const T& const_reference;
 		typedef const revers_iterator const_revers_iterator;
@@ -104,14 +106,17 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 
 	// // constractors -----------------------------------------------------------------------------------------------------------
 		vector(){
-			v_data = alloc.allocate(1);
-			v_size = 1;
+			v_data = alloc.allocate(0);
+			v_size = 0;
+			v_capacity = 0;
 		}
 		vector(size_t n, T t){
-			v_data = alloc.allocate(n);
+			v_data = alloc.allocate(n * 10);
 			for(int i = 0; i < n ; i++){
 				v_data[i] = t;
 			}
+			v_size = n;
+			v_capacity = n * 10;
 		}
 		vector(iterator start, iterator end){
 			int i;
@@ -120,8 +125,9 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			tmp = start;
 			for (i = 0; tmp < end; tmp++)
 				i++;
-			v_data = alloc.allocate(i +1);
+			v_data = alloc.allocate((i +1) * 10);
 			v_size = i + 1;
+			v_capacity = (1 + i) * 10;
 			for (i = 0; start < end; i++)
 				v_data[i] = *(start++);
 
@@ -129,7 +135,9 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		vector(const vector<T, Alloc>& start){
 			iterator it = start.begin();
 
-			v_data = alloc.allocate(start.size());
+			v_data = alloc.allocate(start.size() * 10);
+			v_size = start.size();
+			v_capacity = start.size();
 			for (it ; it < start.end(); it++)
 				this->v_data = *it;
 		}
@@ -155,8 +163,6 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 	
 	
 	// // member functions  -----------------------------------------------------------------------------------------------------------
-	// 	template <class InputIterator>  void assign (InputIterator first, InputIterator last);	
-	// 	void assign (size_t n, const T& val);
 		size_t size(){
 			return v_size;
 		}
@@ -167,22 +173,31 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			tmp = start;
 			for (i = 0; tmp < end; tmp++)
 				i++;
-			v_data = alloc.allocate(i +1);
-			v_size = i + 1;
+			if (v_capacity < i){
+				alloc.deallocate(v_data, v_capacity);
+				v_data = alloc.allocate((i +1) * 1,5);
+				v_capacity = (i +1) * 1,5;
+			}
+			v_size = i;
 			for (i = 0; start < end; i++)
 				v_data[i] = *(start++);
 
 		}
 		void assign(size_t n, T t){
-			v_data = alloc.allocate(n);
+			if (v_capacity < n){
+				alloc.deallocate(v_data, v_capacity);
+				v_data = alloc.allocate(n * 1,5);
+				v_capacity = n * 1,5;
+			}
+			v_size = n;
 			for(int i = 0; i < n ; i++){
 				v_data[i] = t;
 			}
 		}
-		reference at (size_type n){
+		reference at(size_type n){
 			return &v_data[n];
 		}
-		const_reference at (size_type n) const{
+		const_reference at(size_type n) const{
 			return &v_data[n];
 		}
 		reference back(){
@@ -190,6 +205,41 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		}
 		const_reference back() const{
 			return &v_data[v_size];
+		}
+		size_type capacity() const{
+			return v_capacity;
+		}
+		void clear(){
+			alloc.deallocate(v_data, v_capacity);
+			v_size = 0;
+			v_capacity = 0;
+		}
+		bool empty() const{
+			if (size == 0)
+				return true;
+			return false;
+		}
+		iterator erase (iterator position){
+			while (position < this->end()){
+				*position = *(position + 1);
+				position++;
+			}
+		}
+		iterator erase (iterator first, iterator last){
+			while (last < this->end()){
+				*first = *last;
+				last++;
+				first++;
+			}
+		}
+		reference front(){
+			return &v_data[0];
+		}
+		const_reference front() const{
+			return &v_data[0];
+		}
+		allocator_type get_allocator() const{
+			return alloc;
 		}
 	// // -----------------------------------------------------------------------------------------------------------
 
