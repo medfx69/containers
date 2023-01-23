@@ -171,12 +171,12 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		typedef const reverse_iterator const_reverse_iterator;
 		vector::iterator begin() { return vector::iterator(&v_data[0]); }
 		vector::iterator end()   { return vector::iterator(&v_data[v_size - 1]); } 
-		const_iterator begin() const{ return vector::iterator(&v_data[0]); }
-		const_iterator end()   const{ return vector::iterator(&v_data[v_size - 1]); } 
-		reverse_iterator begin(T) { return reverse_iterator(&v_data[v_size - 1]); }
-		reverse_iterator end(T)   { return reverse_iterator(&v_data[0]); } 
-		const_reverse_iterator begin(T)const { return reverse_iterator(&v_data[v_size - 1]); }
-		const_reverse_iterator end(T)  const { return reverse_iterator(&v_data[0]); } 
+		vector::const_iterator begin() const{ return vector::const_iterator(&v_data[0]); }
+		vector::const_iterator end()   const{ return vector::const_iterator(&v_data[v_size - 1]); } 
+		vector::reverse_iterator begin(T) { return vector::const_reverse_iterator(&v_data[v_size - 1]); }
+		vector::reverse_iterator end(T)   { return vector::const_reverse_iterator(&v_data[0]); } 
+		vector::const_reverse_iterator begin(T)const { return vector::const_reverse_iterator(&v_data[v_size - 1]); }
+		vector::const_reverse_iterator end(T)  const { return vector::const_reverse_iterator(&v_data[0]); } 
 
 	// // constractors -----------------------------------------------------------------------------------------------------------
 		vector(){
@@ -192,28 +192,32 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			v_size = n;
 			v_capacity = n * 10;
 		}
-		vector(iterator start, iterator end){
-			int i;
-			iterator tmp;
+		template <class InputIterator>
+		vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type()){
+		    InputIterator tmp;
+		    allocator_type alloc1;
+		    size_t i;
 
-			tmp = start;
-			for (i = 0; tmp < end; tmp++)
-				i++;
-			v_data = alloc.allocate((i +1) * 10);
-			v_size = i + 1;
-			v_capacity = (1 + i) * 10;
-			for (i = 0; start < end; i++)
-				v_data[i] = *(start++);
-
+		    tmp = first;
+		    for (i = 0; tmp < last; tmp++)
+		        i++;
+		    v_data = alloc1.allocate((i +1) * 10);
+		    this->alloc = alloc1;
+		    v_size = i + 1;
+		    v_capacity = (1 + i) * 10;
+		    for (iterator t1 = this->begin(); first < last; t1++, first++){
+		        *t1 = *first;
+		    }
 		}
 		vector(const vector<T, Alloc>& start){
+			size_t i = 0;
 			vector::iterator it = start.begin();
 
 			v_data = alloc.allocate(start.size() * 10);
 			v_size = start.size();
 			v_capacity = start.size();
 			for (it ; it < start.end(); it++)
-				this->v_data = *it;
+				this->v_data[i++] = *it;
 		}
 	// // -----------------------------------------------------------------------------------------------------------
 
@@ -240,12 +244,12 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		size_t size(){
 			return v_size;
 		}
-		void assign(vector::iterator start, vector::iterator end){
+		template <class InputIterator>  void assign (InputIterator first, InputIterator last){
 			int i;
-			vector::iterator tmp;
+			InputIterator tmp;
 
-			tmp = start;
-			for (i = 0; tmp < end; tmp++)
+			tmp = first;
+			for (i = 0; tmp < last; tmp++)
 				i++;
 			if (v_capacity < i){
 				alloc.deallocate(v_data, v_capacity);
@@ -253,8 +257,8 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 				v_capacity = (i +1) * 1.5;
 			}
 			v_size = i;
-			for (i = 0; start < end; i++)
-				v_data[i] = *(start++);
+			for (i = 0; first < last; i++)
+				v_data[i] = *(first++);
 
 		}
 		void assign(size_t n, T t){
@@ -318,20 +322,65 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		vector::iterator insert (vector::iterator position, const value_type& val){
 			vector::iterator t1;
 
-			if (v_capacity +1 > v_capacity){
+			if (v_size + 1 > v_capacity){
 				T *tmp;
 				tmp = alloc.allocate((v_capacity + 1) * 1.5);
 				for (int i = 0; i < v_size; i++)
 					tmp[i] = v_data[i];
 				alloc.deallocate(v_data, v_capacity);
 				v_capacity = (v_capacity + 1) * 1.5;
-				v_size++;
 				v_data = tmp;
 			}
 			for (t1 = this->end(); position < t1; t1--)
 				*t1 = *(t1 - 1);
 			*t1 = val;
+			v_size++;
 			return position;
+		}
+		void insert (iterator position, size_type n, const value_type& val){
+			vector::iterator t1;
+
+			if (v_size + n > v_capacity){
+				T *tmp;
+				tmp = alloc.allocate((v_capacity + n) * 1.5);
+				for (int i = 0; i < v_size; i++)
+					tmp[i] = v_data[i];
+				alloc.deallocate(v_data, v_capacity);
+				v_capacity = (v_capacity + n) * 1.5;
+				v_data = tmp;
+			}
+			for (t1 = this->end(); position < t1; t1--)
+				*(t1 + n) = *t1;
+			while (t1 < position + n){
+				*t1 = val;
+				t1++;
+			}
+			v_size += n;
+		}
+		template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last){
+			int n = 0;
+			vector::iterator t1;
+
+			for (InputIterator tmp = first; tmp < last; tmp++)
+				n++;
+			if (v_size + n > v_capacity){
+				T *tmp;
+				tmp = alloc.allocate((v_capacity + n) * 1.5);
+				for (int i = 0; i < v_size; i++)
+					tmp[i] = v_data[i];
+				alloc.deallocate(v_data, v_capacity);
+				v_capacity = (v_capacity + n) * 1.5;
+				v_data = tmp;
+			}
+			for (t1 = this->end(); position < t1; t1--)
+				*(t1 + n) = *t1;
+			while (first < last){
+				*t1 = *first;
+				t1++;
+				first++;
+			}
+			v_size += n;
+			
 		}
 	// // -----------------------------------------------------------------------------------------------------------
 
