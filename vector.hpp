@@ -2,6 +2,8 @@
 #define VECTOR_HPP
 #include <memory>
 #include <iostream>
+#include <type_traits>
+
 
 
 template < class T, class Alloc = std::allocator<T> > class vector{
@@ -192,8 +194,9 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			v_size = n;
 			v_capacity = n * 10;
 		}
-		template <class InputIterator>
-		vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type()){
+		//  allocator_type& alloc = allocator_type()
+		template <class InputIterator> 
+		vector (InputIterator first, InputIterator last, typename std::enable_if<!std::is_integral<InputIterator>::value, allocator_type>::type = allocator_type()){
 		    InputIterator tmp;
 		    allocator_type alloc1;
 		    size_t i;
@@ -205,7 +208,7 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		    this->alloc = alloc1;
 		    v_size = i + 1;
 		    v_capacity = (1 + i) * 10;
-		    for (iterator t1 = this->begin(); first < last; t1++, first++){
+		    for (vector::iterator t1 = this->begin(); first < last; t1++, first++){
 		        *t1 = *first;
 		    }
 		}
@@ -293,7 +296,7 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			v_capacity = 0;
 		}
 		bool empty() const{
-			if (size == 0)
+			if (v_size == 0)
 				return true;
 			return false;
 		}
@@ -328,7 +331,7 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 				for (int i = 0; i < v_size; i++)
 					tmp[i] = v_data[i];
 				alloc.deallocate(v_data, v_capacity);
-				v_capacity = (v_capacity + 1) * 1.5;
+				v_capacity = (v_capacity   + 1) * 1.5;
 				v_data = tmp;
 			}
 			for (t1 = this->end(); position < t1; t1--)
