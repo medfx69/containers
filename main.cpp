@@ -1,9 +1,10 @@
 #include "vector.hpp"
+#include "unistd.h"
 
 #define TESTED_TYPE int
 
 int             main(void)
-{
+{{
         vector<TESTED_TYPE> vct(7);
         vector<TESTED_TYPE> vct_two(4);
         vector<TESTED_TYPE> vct_three;
@@ -13,8 +14,8 @@ int             main(void)
                 vct[i] = (vct.size() - i) * 3;
         for (unsigned long int i = 0; i < vct_two.size(); ++i)
                 vct_two[i] = (vct_two.size() - i) * 5;
-        printSize(vct);
-        printSize(vct_two);
+        std::cout << vct.size() << std::endl;
+        std::cout << vct_two.size() << std::endl;
 
         vct_three.assign(vct.begin(), vct.end());
         vct.assign(vct_two.begin(), vct_two.end());
@@ -23,21 +24,22 @@ int             main(void)
 
         std::cout << "\t### After assign(): ###" << std::endl;
 
-        printSize(vct);
-        printSize(vct_two);
-        printSize(vct_three);
-        printSize(vct_four);
+        std::cout << vct.size() << std::endl;
+        std::cout << vct_two.size() << std::endl;
+        std::cout << vct_three.size() << std::endl;
+        std::cout << vct_four.size() << std::endl;
 
         vct_four.assign(6, 84);
-        printSize(vct_four);
+        std::cout << vct_four.size() << std::endl;
 
         std::cout << "\t### assign() on enough capacity and low size: ###" << std::endl;
 
         vct.assign(5, 53);
         vct_two.assign(vct_three.begin(), vct_three.begin() + 3);
 
-        printSize(vct);
-        printSize(vct_two);
-
+        std::cout << vct.size() << std::endl;
+        std::cout << vct_two.size() << std::endl;
+}
+        // system("leaks a.out");
         return (0);
 }
