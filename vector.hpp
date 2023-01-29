@@ -2,6 +2,7 @@
 #define VECTOR_HPP
 #include <memory>
 #include <iostream>
+#include "ft.hpp"
 #include <type_traits>
 
 
@@ -196,7 +197,7 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		}
 		//  allocator_type& alloc = allocator_type()
 		template <class InputIterator> 
-		vector (InputIterator first, InputIterator last, typename std::enable_if<!std::is_integral<InputIterator>::value, allocator_type>::type = allocator_type()){
+		vector (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value, allocator_type>::type = allocator_type()){
 		    InputIterator tmp;
 		    allocator_type alloc1;
 		    size_t i;
@@ -360,7 +361,7 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			}
 			v_size += n;
 		}
-		template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last){
+		template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value, allocator_type>::type =  nullptr){
 			int n = 0;
 			vector::iterator t1;
 
@@ -384,6 +385,91 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			}
 			v_size += n;
 			
+		}
+		size_type max_size() const{
+			return v_capacity;
+		}
+		size_type size() const{
+			return v_size;
+		}
+		reference operator[] (size_type n){
+			return v_data[n];
+		}
+		const_reference operator[] (size_type n) const{
+			return v_data[n];
+		}
+		vector& operator= (const vector& x){
+			vector::iterator t1;
+			vector::iterator t2;
+			if (v_data)
+				alloc.deallocate(v_data, v_capacity);
+			v_data = alloc.allocate(x.capacity());
+			v_capacity = x.capacity();
+			for (t1 = x.begin(), t2 = this->begin(); t1 < x.end(); t1++, t2++)
+				*t2 = *t1;
+			v_size = x.size();
+			return *this;
+		}
+		void pop_back(){
+			v_size--;
+		}
+		void push_back (const value_type& val){
+			if (v_size + 1 > v_capacity){
+				T *tmp;
+				tmp = alloc.allocate((v_capacity + 1) * 1.5);
+				for (int i = 0; i < v_size; i++)
+					tmp[i] = v_data[i];
+				alloc.deallocate(v_data, v_capacity);
+				v_capacity = (v_capacity   + 1) * 1.5;
+				v_data = tmp;
+			}
+			v_data[v_size] = val;
+			v_size++;
+		}
+		reverse_iterator rbegin(){
+			return v_data[v_size - 1];
+		}
+		const_reverse_iterator rbegin() const{
+			return v_data[v_size - 1];
+		}
+		reverse_iterator rend(){
+			return v_data[0];
+		}
+		const_reverse_iterator rend() const{
+			return v_data[0];
+		}
+		void reserve (size_type n){
+			alloc.deallocate(v_data, v_capacity);
+			v_data = alloc.allocate(n);
+			v_capacity = n;
+			v_size = 0;
+		}
+		void resize (size_type n, value_type val = value_type()){
+			if (v_size > n){
+				v_size = n;
+				return ;
+			}
+			if (n > v_capacity){
+				T* tmp;
+				tmp = alloc.allocate(n * 1.5);
+				for (int i = 0; i < v_size; i++)
+					tmp[i] = v_data[i];
+				alloc.deallocate(v_data, v_capacity);
+				v_capacity = n * 1.5;
+				v_data = tmp;
+			}
+
+			for (int i = v_size; i < n ; i++)
+				v_data[i] = val;
+			v_size = n;
+		}
+
+		void swap (vector& x){
+			vector tmp;
+
+			tmp = x;
+			x = this;
+			this = tmp;
 		}
 	// // -----------------------------------------------------------------------------------------------------------
 
