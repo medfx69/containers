@@ -187,10 +187,16 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			v_size = 0;
 			v_capacity = 0;
 		}
-		vector(size_t n, T t){
+		vector(T t){
+			v_data = alloc.allocate(10);
+			v_data[0] = t;
+			v_size = 1;
+			v_capacity = 10;
+		}
+		vector(size_type n, const value_type& val = value_type()){
 			v_data = alloc.allocate(n * 10);
 			for(int i = 0; i < n ; i++){
-				v_data[i] = t;
+				v_data[i] = val;
 			}
 			v_size = n;
 			v_capacity = n * 10;
@@ -213,14 +219,14 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		        *t1 = *first;
 		    }
 		}
-		vector(const vector<T, Alloc>& start){
+		vector(const vector& x){
 			size_t i = 0;
-			vector::iterator it = start.begin();
+			vector::iterator it = x.begin();
 
-			v_data = alloc.allocate(start.size() * 10);
-			v_size = start.size();
-			v_capacity = start.size();
-			for (it ; it < start.end(); it++)
+			v_data = alloc.allocate(x.size() * 10);
+			v_size = x.size();
+			v_capacity = x.size();
+			for (it ; it < x.end(); it++)
 				this->v_data[i++] = *it;
 		}
 	// // -----------------------------------------------------------------------------------------------------------
@@ -248,7 +254,7 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		size_t size(){
 			return v_size;
 		}
-		template <class InputIterator>  void assign (InputIterator first, InputIterator last){
+		template <class InputIterator>  void assign (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value, allocator_type>::type = std::nullptr_t){
 			int i;
 			InputIterator tmp;
 

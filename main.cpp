@@ -1,21 +1,43 @@
 #include "vector.hpp"
-int main()
-{
-	// vector<int> vec(12,4);
-	vector<int> vec1(12,3);
-	vector<int>::iterator t1 = vec1.begin();
-	vector<int>::iterator t2 = vec1.end();
 
-	// vec.assign(t1,t2);
-	vector<int> vec2(t1, t2);
-	vector<int> vec4(12,3);
-	vec1[2] = vec2[3];
-	vec4 = vec2;
-	vector<int>::iterator t = vec4.begin();
-	while (t < vec4.end())
-		std::cout << *(t++) << std::endl;
-	vec4.resize(100, 9);
-	t = vec4.begin();
-	while (t < vec4.end())
-		std::cout << *(t++) << std::endl;
+#define TESTED_TYPE int
+
+int             main(void)
+{
+        vector<TESTED_TYPE> vct(7);
+        vector<TESTED_TYPE> vct_two(4);
+        vector<TESTED_TYPE> vct_three;
+        vector<TESTED_TYPE> vct_four;
+
+        for (unsigned long int i = 0; i < vct.size(); ++i)
+                vct[i] = (vct.size() - i) * 3;
+        for (unsigned long int i = 0; i < vct_two.size(); ++i)
+                vct_two[i] = (vct_two.size() - i) * 5;
+        printSize(vct);
+        printSize(vct_two);
+
+        vct_three.assign(vct.begin(), vct.end());
+        vct.assign(vct_two.begin(), vct_two.end());
+        vct_two.assign(2, 42);
+        vct_four.assign(4, 21);
+
+        std::cout << "\t### After assign(): ###" << std::endl;
+
+        printSize(vct);
+        printSize(vct_two);
+        printSize(vct_three);
+        printSize(vct_four);
+
+        vct_four.assign(6, 84);
+        printSize(vct_four);
+
+        std::cout << "\t### assign() on enough capacity and low size: ###" << std::endl;
+
+        vct.assign(5, 53);
+        vct_two.assign(vct_three.begin(), vct_three.begin() + 3);
+
+        printSize(vct);
+        printSize(vct_two);
+
+        return (0);
 }
