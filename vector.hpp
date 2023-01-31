@@ -3,7 +3,7 @@
 #include <memory>
 #include <iostream>
 #include "ft.hpp"
-#include <type_traits>
+
 
 
 
@@ -183,14 +183,16 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 
 	// // constractors -----------------------------------------------------------------------------------------------------------
 		explicit vector(){
-			v_data = alloc.allocate(1);
+			v_data = this->alloc.allocate(1);
+			this->alloc.construct(v_data, 0);
 			v_size = 0;
 			v_capacity = 1;
 		}
 		explicit vector (size_type n, const value_type& val = value_type(),  const allocator_type& alloc = allocator_type()){
+			(void) alloc;
 			v_data = this->alloc.allocate(n * 10);
-			for(int i = 0; i < n ; i++){
-				v_data[i] = val;
+			for(size_t i = 0; i < n ; i++){
+				this->alloc.construct(v_data + i, val);
 			}
 			v_size = n;
 			v_capacity = n * 10;
@@ -198,16 +200,12 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		template <class InputIterator> 
 		vector (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value, allocator_type>::type = allocator_type()){
 		    InputIterator tmp;
-		    size_t i;
 
-		    tmp = first;
-		    for (i = 0; tmp < last; tmp++)
-		        i++;
-		    v_data = this->alloc.allocate(i * 10);
-		    v_size = i;
-		    v_capacity = (1 + i) * 10;
-		    for (vector::iterator t1 = this->begin(); first < last; t1++, first++){
-		        *t1 = *first;
+		    v_size = std::distance(&first, &last);
+			v_data = this->alloc.allocate(v_size * 10);
+		    v_capacity = v_size * 10;
+		    for (size_type t1 = 0; first <= last; t1++, first++){
+		    	alloc.construct(v_data + t1, *first);
 		    }
 		}
 		vector(const vector& x){
@@ -217,8 +215,8 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			v_data = alloc.allocate(x.size() * 10);
 			v_size = x.size();
 			v_capacity = x.size();
-			for (it ; it < x.end(); it++)
-				this->v_data[i++] = *it;
+			for (it ; it < x.end(); it++, i++)
+				alloc.construct(v_data + i, *it);
 		}
 	// // -----------------------------------------------------------------------------------------------------------
 
@@ -226,7 +224,9 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 	
 	// destractors -----------------------------------------------------------------------------------------------------------
 		~vector(){
-			alloc.deallocate(v_data, v_capacity);
+			for (size_type i = 0; i < v_capacity; i++)
+				this->alloc.destroy(v_data + i);
+			this->alloc.deallocate(v_data, v_capacity);
 		}
 	// ---------------------------------------------------------------------------------------------------------
 	
@@ -235,30 +235,34 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			return v_size;
 		}
 		template <class InputIterator> 
-		void assign (InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value, allocator_type >::type = allocator_type()){
-			int i;
+		void assign (InputIterator first, InputIterator last,
+			typename ft::enable_if<!ft::is_integral<InputIterator>::value, allocator_type >::type = allocator_type()){
 			InputIterator tmp;
 
-			tmp = first;
-			for (v_size = 0; tmp + v_size <= last; v_size++);
+			v_size = std::distance(&first, &last);
+
 			if (v_capacity < v_size){
-				alloc.deallocate(v_data, v_capacity);
-				v_data = alloc.allocate(v_size * 1.5);
+				for (size_type i = 0; i < v_capacity; i++)
+					this->alloc.destroy(v_data + i);
+				this->alloc.deallocate(v_data, v_capacity);
+				v_data = this->alloc.allocate(v_size * 1.5);
 				v_capacity = v_size * 1.5;
 			}
-			for (i = 0; first <= last; i++)
-				v_data[i] = *(first++);
+			for (int i = 0; first <= last; i++, first++)
+				alloc.construct(v_data + i, *first);
 		}
 		void assign(size_t n, T t){
 			if (v_capacity < n){
-				alloc.deallocate(v_data, v_capacity);
-				v_data = alloc.allocate(n * 1.5);
+				for (size_type i = 0; i < v_capacity; i++)
+					this->alloc.destroy(v_data + i);
+				this->alloc.deallocate(v_data, v_capacity);
+				v_data = this->alloc.allocate(n * 1.5);
 				v_capacity = n * 1.5;
 			}
-			v_size = n;
-			for(int i = 0; i < n ; i++){
-				v_data[i] = t;
+			for(size_t i = 0; i < n ; i++){
+				this->alloc.construct(v_data + i, t);
 			}
+			v_size = n;
 		}
 		reference at(size_type n){
 			return &v_data[n];
@@ -267,15 +271,17 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			return &v_data[n];
 		}
 		reference back(){
-			return &v_data[v_size];
+			return &v_data[v_size -1];
 		}
 		const_reference back() const{
-			return &v_data[v_size];
+			return &v_data[v_size -1];
 		}
 		size_type capacity() const{
 			return v_capacity;
 		}
 		void clear(){
+			for (size_type i = 0; i < v_capacity; i++)
+				alloc.destroy(v_data + i);
 			alloc.deallocate(v_data, v_capacity);
 			v_size = 0;
 			v_capacity = 0;
@@ -314,11 +320,14 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 				T *tmp;
 				tmp = alloc.allocate((v_capacity + 1) * 1.5);
 				for (int i = 0; i < v_size; i++)
-					tmp[i] = v_data[i];
+					alloc.construct(tmp +i, *(v_data + i));
+				for (size_type i = 0; i < v_capacity; i++)
+					alloc.destroy(v_data + i);
 				alloc.deallocate(v_data, v_capacity);
 				v_capacity = (v_capacity   + 1) * 1.5;
 				v_data = tmp;
 			}
+			alloc.construct(this->end() + 1, *this->end());
 			for (t1 = this->end(); position < t1; t1--)
 				*t1 = *(t1 - 1);
 			*t1 = val;
@@ -332,36 +341,44 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 				T *tmp;
 				tmp = alloc.allocate((v_capacity + n) * 1.5);
 				for (int i = 0; i < v_size; i++)
-					tmp[i] = v_data[i];
+					alloc.construct(tmp + i, *(v_data + i));
+				for (size_type i = 0; i < v_capacity; i++)
+					alloc.destroy(v_data + i);
 				alloc.deallocate(v_data, v_capacity);
 				v_capacity = (v_capacity + n) * 1.5;
 				v_data = tmp;
 			}
-			for (t1 = this->end(); position < t1; t1--)
-				*(t1 + n) = *t1;
+			for (t1 = this->end(); position < t1; t1--){
+				if (t1 + n >  this->end())
+					alloc.construct(t1 + n, *t1);
+				else
+					*(t1 + n) = *t1;
+			}
 			while (t1 < position + n){
 				*t1 = val;
 				t1++;
 			}
 			v_size += n;
 		}
-		template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last, typename ft::enable_if<!ft::is_integral<InputIterator>::value, allocator_type>::type =  nullptr){
+		template <class InputIterator>    void insert (iterator position, InputIterator first, InputIterator last,
+			typename ft::enable_if<!ft::is_integral<InputIterator>::value, allocator_type>::type =  allocator_type()){
 			int n = 0;
 			vector::iterator t1;
 
-			for (InputIterator tmp = first; tmp < last; tmp++)
-				n++;
+			n = std::distance(&first, &last);
 			if (v_size + n > v_capacity){
 				T *tmp;
 				tmp = alloc.allocate((v_capacity + n) * 1.5);
 				for (int i = 0; i < v_size; i++)
-					tmp[i] = v_data[i];
+					alloc.construct(tmp + i, *(v_data + i));
+				for (size_type i = 0; i < v_capacity; i++)
+					alloc.destroy(v_data + i);
 				alloc.deallocate(v_data, v_capacity);
 				v_capacity = (v_capacity + n) * 1.5;
 				v_data = tmp;
 			}
 			for (t1 = this->end(); position < t1; t1--)
-				*(t1 + n) = *t1;
+				alloc.construct(t1 + n, *t1);
 			while (first < last){
 				*t1 = *first;
 				t1++;
@@ -382,15 +399,18 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 		const_reference operator[] (size_type n) const{
 			return *(v_data + n);
 		}
-		vector& operator= (const vector& x){
+		vector& operator=(const vector& x){
 			vector::iterator t1;
 			vector::iterator t2;
-			if (v_data)
-				alloc.deallocate(v_data, v_capacity);
+
+
+			for (size_type i = 0; i < v_capacity; i++)
+				alloc.destroy(v_data + i);
+			alloc.deallocate(v_data, v_capacity);
 			v_data = alloc.allocate(x.capacity());
 			v_capacity = x.capacity();
-			for (t1 = x.begin(), t2 = this->begin(); t1 < x.end(); t1++, t2++)
-				*t2 = *t1;
+			for (t1 = x.begin(), t2 = this->begin(); t1 <= x.end(); t1++, t2++)
+				alloc.construct(t2, *t1);
 			v_size = x.size();
 			return *this;
 		}
@@ -403,11 +423,13 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 				tmp = alloc.allocate((v_capacity + 1) * 1.5);
 				for (int i = 0; i < v_size; i++)
 					tmp[i] = v_data[i];
+				for (size_type i = 0; i < v_capacity; i++)
+					alloc.destroy(v_data + i);
 				alloc.deallocate(v_data, v_capacity);
 				v_capacity = (v_capacity   + 1) * 1.5;
 				v_data = tmp;
 			}
-			v_data[v_size] = val;
+			alloc.construct(v_data + v_size, val);
 			v_size++;
 		}
 		reverse_iterator rbegin(){
@@ -423,6 +445,8 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 			return v_data[0];
 		}
 		void reserve (size_type n){
+			for (size_type i = 0; i < v_capacity; i++)
+				alloc.destroy(v_data + i);
 			alloc.deallocate(v_data, v_capacity);
 			v_data = alloc.allocate(n);
 			v_capacity = n;
@@ -437,14 +461,16 @@ template < class T, class Alloc = std::allocator<T> > class vector{
 				T* tmp;
 				tmp = alloc.allocate(n * 1.5);
 				for (int i = 0; i < v_size; i++)
-					tmp[i] = v_data[i];
+					alloc.construct(tmp + i, v_data[i]);
+				for (size_type i = 0; i < v_capacity; i++)
+					alloc.destroy(v_data + i);
 				alloc.deallocate(v_data, v_capacity);
 				v_capacity = n * 1.5;
 				v_data = tmp;
 			}
 
 			for (int i = v_size; i < n ; i++)
-				v_data[i] = val;
+				alloc.construct(v_data + i, val);
 			v_size = n;
 		}
 

@@ -1,5 +1,7 @@
-#include "vector.hpp"
+// #include "vector.hpp"
 #include "unistd.h"
+#include "vector.hpp"
+#include <iostream>
 
 #define TESTED_TYPE int
 
