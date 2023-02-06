@@ -73,13 +73,13 @@ namespace ft{
 		            mPtr--;
 		            return *this;
 		        }
-		        iterator operator++(int) {
-		            iterator temp(*this);
+		        iterator& operator++(int) {
+		            iterator& temp = *this;
 		            mPtr++;
 		            return temp;
 		        }
-		        iterator operator--(int) {
-		            iterator temp(*this);
+		        iterator& operator--(int) {
+		            iterator& temp = *this;
 		            mPtr--;
 		            return temp;
 		        }
@@ -368,7 +368,7 @@ namespace ft{
 		}
 		vector::iterator erase (vector::iterator position){
 			vector::iterator tmp = position;
-			while (position < this->end()){
+			while (position + 1 < this->end()){
 				*position = *(position + 1);
 				position++;
 			}
@@ -418,9 +418,9 @@ namespace ft{
 		void insert (iterator position, size_type n, const value_type& val){
 			vector::iterator t1;
 			size_t i;
+			T *tmp;
 
 			if (v_size + n > v_capacity){
-				T *tmp;
 				tmp = alloc.allocate((v_capacity + n) * 1.5);
 				for (size_t i = 0; i < v_size; i++)
 					alloc.construct(tmp + i, *(v_data + i));
@@ -430,13 +430,8 @@ namespace ft{
 				v_capacity = (v_capacity + n) * 1.5;
 				v_data = tmp;
 			}
-			if (position < this->end())
-			{
-				for (t1 = this->end() -1, i = v_size; position != t1 && std::distance(position, this->end()) > 0; t1--, i--){
-					if (t1 + n >  this->end())
-						alloc.construct(v_data + n + i, *t1);
-					std::cout<< "hello\n";
-				}
+			for (i = v_size; i < v_size + n; i++){
+				alloc.construct(v_data + i, 0);
 			}
 			while (t1 < position + n){
 				*t1 = val;
@@ -490,6 +485,23 @@ namespace ft{
 		vector& operator=(const vector& x){
 			vector::const_iterator t1;
 			vector::const_iterator t2 = x.end();
+			size_t i;
+
+
+			for (size_type i = 0; i < v_capacity; i++)
+				alloc.destroy(v_data + i);
+			alloc.deallocate(v_data, v_capacity);
+			v_data = alloc.allocate(x.capacity());
+			v_capacity = x.capacity();
+			for (t1 = x.begin(), i = 0; t1 < t2; t1++, i++){
+				alloc.construct(v_data + i, *t1);
+			}
+			v_size = x.size();
+			return *this;
+		}
+		vector& operator=(vector& x){
+			vector::iterator t1;
+			vector::iterator t2 = x.end();
 			size_t i;
 
 
@@ -570,8 +582,8 @@ namespace ft{
 			vector tmp;
 
 			tmp = x;
-			x = this;
-			this = tmp;
+			x = *this;
+			*this =  tmp;
 		}
 	// // -----------------------------------------------------------------------------------------------------------
 		friend void swap (vector& x, vector& y){
@@ -583,8 +595,8 @@ namespace ft{
 		}
 		friend bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
 			if (lhs.size() == rhs.size()){
-				iterator it1;
-				iterator it2;
+				const_iterator it1;
+				const_iterator it2;
 
 				for (it1 = lhs.begin(), it2 = rhs.begin(); it1 < lhs.end() && it2 < rhs.end(); it1++, it2++){
 					if (*it1 != *it2)
@@ -597,8 +609,8 @@ namespace ft{
 		}
 		friend bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
 			if (lhs.size() == rhs.size()){
-				iterator it1;
-				iterator it2;
+				const_iterator it1;
+				const_iterator it2;
 
 				for (it1 = lhs.begin(), it2 = rhs.begin(); it1 < lhs.end() && it2 < rhs.end(); it1++, it2++){
 					if (*it1 != *it2)
@@ -611,10 +623,10 @@ namespace ft{
 		}
 
 		friend bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
-			iterator first1 = lhs.begin();
-			iterator first2 = rhs.begin();
-			iterator last1 = lhs.end();
-			iterator last2 = rhs.end();
+			const_iterator first1 = lhs.begin();
+			const_iterator first2 = rhs.begin();
+			const_iterator last1 = lhs.end();
+			const_iterator last2 = rhs.end();
 
   			while (first1!=last1)
   			{
@@ -625,10 +637,10 @@ namespace ft{
   			return (first2!=last2);
 		}
 		friend bool operator<=  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
-			iterator first1 = lhs.begin();
-			iterator first2 = rhs.begin();
-			iterator last1 = lhs.end();
-			iterator last2 = rhs.end();
+			const_iterator first1 = lhs.begin();
+			const_iterator first2 = rhs.begin();
+			const_iterator last1 = lhs.end();
+			const_iterator last2 = rhs.end();
 
   			while (first1!=last1)
   			{
@@ -639,10 +651,10 @@ namespace ft{
   			return (first2==last2);
 		}
 		friend bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
-			iterator first1 = lhs.begin();
-			iterator first2 = rhs.begin();
-			iterator last1 = lhs.end();
-			iterator last2 = rhs.end();
+			const_iterator first1 = lhs.begin();
+			const_iterator first2 = rhs.begin();
+			const_iterator last1 = lhs.end();
+			const_iterator last2 = rhs.end();
 
   			while (first1!=last1)
   			{
@@ -654,10 +666,10 @@ namespace ft{
 		}
 
 		friend bool operator>=  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs){
-			iterator first1 = lhs.begin();
-			iterator first2 = rhs.begin();
-			iterator last1 = lhs.end();
-			iterator last2 = rhs.end();
+			const_iterator first1 = lhs.begin();
+			const_iterator first2 = rhs.begin();
+			const_iterator last1 = lhs.end();
+			const_iterator last2 = rhs.end();
 
   			while (first1!=last1)
   			{

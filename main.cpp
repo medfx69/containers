@@ -1,6 +1,6 @@
 #include "vector.hpp"
-#include "vector"
-#include "unistd.h"
+#include <vector>
+#include <unistd.h>
 #include <iostream>
 #include<iterator>
 #include <stdlib.h>
@@ -138,24 +138,24 @@ int             main(void)
     std::cout << ' ' << *it;
   std::cout << '\n';
 	}
-	// {
-// 		  ft::vector<int> myvector;
+	{
+		  ft::vector<int> myvector;
 
-//   // set some values (from 1 to 10)
-//   for (int i=1; i<=10; i++) myvector.push_back(i);
+  // set some values (from 1 to 10)
+  for (int i=1; i<=10; i++) myvector.push_back(i);
 
-//   // erase the 6th element
-//   myvector.erase (myvector.begin()+5);
+  // erase the 6th element
+  myvector.erase (myvector.begin()+5);
 
-//   // erase the first 3 elements:
-//   myvector.erase (myvector.begin(),myvector.begin()+3);
+  // erase the first 3 elements:
+  myvector.erase (myvector.begin(),myvector.begin()+3);
 
-//   std::cout << "myvector contains:";
-//   for (unsigned i=0; i<myvector.size(); ++i)
-//     std::cout << ' ' << myvector[i];
-//   std::cout << '\n';
+  std::cout << "myvector contains:";
+  for (unsigned i=0; i<myvector.size(); ++i)
+    std::cout << ' ' << myvector[i];
+  std::cout << '\n';
 
-// 	}
+	}
 	{
 	  ft::vector<int> myvector;
 
@@ -372,5 +372,50 @@ int             main(void)
   std::cout << "3. size: " << myints.size() << '\n';
 
 	}
+  {
+      ft::vector<int> foo (3,100);   // three ints with a value of 100
+  ft::vector<int> bar (5,200);   // five ints with a value of 200
+
+  foo.swap(bar);
+
+  std::cout << "foo contains:";
+  for (unsigned i=0; i<foo.size(); i++)
+    std::cout << ' ' << foo[i];
+  std::cout << '\n';
+
+  std::cout << "bar contains:";
+  for (unsigned i=0; i<bar.size(); i++)
+    std::cout << ' ' << bar[i];
+  std::cout << '\n';
+  }
+  {
+      ft::vector<int> foo (3,100);   // three ints with a value of 100
+  ft::vector<int> bar (2,200);   // two ints with a value of 200
+
+  if (foo==bar) std::cout << "foo and bar are equal\n";
+  if (foo!=bar) std::cout << "foo and bar are not equal\n";
+  if (foo< bar) std::cout << "foo is less than bar\n";
+  if (foo> bar) std::cout << "foo is greater than bar\n";
+  if (foo<=bar) std::cout << "foo is less than or equal to bar\n";
+  if (foo>=bar) std::cout << "foo is greater than or equal to bar\n";
+
+  }
+  {
+  ft::vector<int> foo (3,100);   // three ints with a value of 100
+  ft::vector<int> bar (5,200);   // five ints with a value of 200
+
+  foo.swap(bar);
+
+  std::cout << "foo contains:";
+  for (ft::vector<int>::iterator it = foo.begin(); it!=foo.end(); ++it)
+    std::cout << ' ' << *it;
+  std::cout << '\n';
+
+  std::cout << "bar contains:";
+  for (ft::vector<int>::iterator it = bar.begin(); it!=bar.end(); ++it)
+    std::cout << ' ' << *it;
+  std::cout << '\n';
+
+  }
         return (0);
 }
