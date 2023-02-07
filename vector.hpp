@@ -247,7 +247,7 @@ namespace ft{
 		iterator begin() { return iterator(v_data); }
 		iterator end()   { return iterator(v_data + v_size); } 
 		const_iterator begin() const{ return const_iterator(&v_data[0]); }
-		const_iterator end()   const{ return const_iterator(&v_data[v_size - 1]); } 
+		const_iterator end()   const{ return const_iterator(v_data + v_size ); } 
 		// reverse_iterator begin(T) { return const_reverse_iterator(&v_data[v_size - 1]); }
 		// reverse_iterator end(T)   { return const_reverse_iterator(&v_data[0]); } 
 		// const_reverse_iterator begin(T)const { return const_reverse_iterator(&v_data[v_size - 1]); }
@@ -263,7 +263,7 @@ namespace ft{
 		explicit vector (size_type n, const value_type& val = value_type(),  const allocator_type& alloc = allocator_type()){
 			(void) alloc;
 			v_data = this->alloc.allocate(n * 10);
-			for(size_t i = 0; i < n ; i++){
+			for(size_t i = 0; i <= n ; i++){
 				this->alloc.construct(v_data + i, val);
 			}
 			v_size = n;
@@ -321,9 +321,8 @@ namespace ft{
 				v_data = this->alloc.allocate(v_size * 1.5);
 				v_capacity = v_size * 1.5;
 			}
-			for (i = 0; first < last; i++, first++)
+			for (i = 0; first <= last; i++, first++)
 				alloc.construct(v_data + i, *first);
-			v_size = i;
 		}
 		void assign(size_t n, T t){
 			if (v_capacity < n){
@@ -333,7 +332,7 @@ namespace ft{
 				v_data = this->alloc.allocate(n * 1.5);
 				v_capacity = n * 1.5;
 			}
-			for(size_t i = 0; i < n ; i++){
+			for(size_t i = 0; i <= n ; i++){
 				this->alloc.construct(v_data + i, t);
 			}
 			v_size = n;
@@ -348,7 +347,7 @@ namespace ft{
 			return v_data[v_size -1];
 		}
 		const_reference back() const{
-			return &v_data[v_size -1];
+			return v_data[v_size -1];
 		}
 		size_type capacity() const{
 			return v_capacity;
@@ -484,7 +483,6 @@ namespace ft{
 		}
 		vector& operator=(const vector& x){
 			vector::const_iterator t1;
-			vector::const_iterator t2 = x.end();
 			size_t i;
 
 
@@ -493,7 +491,7 @@ namespace ft{
 			alloc.deallocate(v_data, v_capacity);
 			v_data = alloc.allocate(x.capacity());
 			v_capacity = x.capacity();
-			for (t1 = x.begin(), i = 0; t1 < t2; t1++, i++){
+			for (t1 = x.begin(), i = 0; t1 < x.end(); t1++, i++){
 				alloc.construct(v_data + i, *t1);
 			}
 			v_size = x.size();
@@ -501,7 +499,6 @@ namespace ft{
 		}
 		vector& operator=(vector& x){
 			vector::iterator t1;
-			vector::iterator t2 = x.end();
 			size_t i;
 
 
@@ -510,7 +507,7 @@ namespace ft{
 			alloc.deallocate(v_data, v_capacity);
 			v_data = alloc.allocate(x.capacity());
 			v_capacity = x.capacity();
-			for (t1 = x.begin(), i = 0; t1 < t2; t1++, i++){
+			for (t1 = x.begin(), i = 0; t1 < x.end(); t1++, i++){
 				alloc.construct(v_data + i, *t1);
 			}
 			v_size = x.size();
