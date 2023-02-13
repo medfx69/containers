@@ -332,7 +332,7 @@ namespace ft{
 				v_data = this->alloc.allocate(n * 1.5);
 				v_capacity = n * 1.5;
 			}
-			for(size_t i = 0; i <= n ; i++){
+			for(size_t i = 0; i < n ; i++){
 				this->alloc.construct(v_data + i, t);
 			}
 			v_size = n;
