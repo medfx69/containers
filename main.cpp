@@ -417,5 +417,7 @@ int             main(void)
   std::cout << '\n';
 
   }
+   system("leaks a.out");
+
         return (0);
 }
