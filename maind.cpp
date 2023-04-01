@@ -31,9 +31,14 @@ int main()
    // Tree<int>* s = new Tree<int>(*m);
    std::cout << &m->root->right <<"m>>>>" <<m->root->value<< std::endl;
    std::cout << &m->root->right <<"m>>>>" <<m->root->right->value<< std::endl;
+   std::cout << &m->root->right <<"m>>>>" <<m->root->right->right->value<< std::endl;
+   std::cout << &m->root->right <<"m>>>>" <<m->root->right->right->left->value<< std::endl;
+   std::cout << &m->root->right <<"m>>>>" <<m->root->right->right->left->right->value<< std::endl;
    std::cout << &m->root->right <<"m>>>>" <<m->root->left->value<< std::endl;
    std::cout << &m->root->right <<"m>>>>" <<m->root->right->right->value<< std::endl;
-   std::cout << &m->root->right <<"m>>>>" <<m->root->left->value<< std::endl;
+   std::cout << &m->root->right <<">m>>>>" <<m->root->right->value<< std::endl;
+   m->delete_node(m->root->right);
+   std::cout << &m->root->right <<">m>>>>" <<m->root->right->value<< std::endl;
    // std::cout << &s->root->right <<">>>>" <<s->root->right->value<< std::endl;
    // std::cout << &s->root->right <<">>>>" <<s->root->left->value<< std::endl;
    // std::cout << &s->root->right <<">>>>" <<s->root->right->right->value<< std::endl;

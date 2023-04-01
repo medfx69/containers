@@ -51,6 +51,25 @@ class Tree
             this->root->parent = nil;
             this->nil->color = black;
         }
+        void rBTransplant(Node *u, Node *v){
+            if (u->parent == nil)
+                root = v;
+            else if(u == u->parent->left)
+                u->parent->left = v;
+            else
+                u->parent->right = v;
+            v->parent = u->parent;
+        }
+        Node *treeMinimum(Node *x){
+            while (x->left != nil)
+                x = x->left;
+            return x;
+        }
+        Node *treeMaximum(Node *x){
+            while (x->right != nil)
+                x = x->right;
+            return x;
+        }
         Node  *copy_tree(Node *tree, Node *tNil){
             Node *node;
 
@@ -96,7 +115,6 @@ class Tree
         void leftRotate(Node *x){
             Node *y = x->right;
             x->right = y->left;
-            std::cout << "::::>"<< x->left->parent<< std::endl <<"::::>"<< x << std::endl;
             if(y->left != nil)
                 y->left->parent = x;
             y->parent = x->parent;
@@ -199,37 +217,102 @@ class Tree
             }
             insertFixUp(z);
         }
-        // void delete_node(Node *z){
-        //     Node *y = z;
 
-        //     if (node->left == nil && node != nil){
-        //         if (node->right != nil)
-        //         {
-        //             tmp = node->right;
-        //             node->value = node->right->value;
-        //             node->left = node->right->left;
-        //             node->right = node->right->right;
-        //             alloc.deallocate(tmp, 1);
-        //         }
-        //         else
-        //             node = nil;
-        //     }
-        //     else if (node->right == nil && node != nil){
-        //         if (node->left != nil){
-        //             tmp = node->right;
-        //             tmp = node->left;
-        //             node->value = node->right->value;
-        //             node->right = node->left->right;
-        //             node->left = node->left->left;
-        //             alloc.deallocate(tmp, 1);
-        //         }
-        //         else
-        //             node = nil;
-        //     }
-        //     else if (node != nil){
-                
-        //     }
-        // }
+        void rBDeleteFixup(Node *x){
+            while (x != root && x->color == black){
+                if (x == x->parent->left){
+                    Node *w = x->parent->right;
+                    if (x->parent->right == nil)
+                        return ;
+                    if (w->color == red){
+                        w->color = black;
+                        x->parent->color = red;
+                        leftRotate(x->parent);
+                        w = x->parent->right;
+                    }
+                    if (w->left->color == black && w->right->color == black){
+                        w->color = red;
+                        x = x->parent;
+                    }
+                    else if (w->right->color == black){
+                        w->left->color = black;
+                        w->color = red;
+                        rightRotate(w);
+                    }
+                    else{
+                        w->color = x->parent->color;
+                        x->parent->color = black;
+                        w->right->color = black;
+                        leftRotate(x->parent);
+                        x = root;
+                    }
+                }
+                else {
+                    Node *w = x->parent->left;
+                    if (w->color == red){
+                        w->color = black;
+                        x->parent->color = red;
+                        rightRotate(x->parent);
+                        w = x->parent->left;
+                    }
+                    if (w->right->color == black && w->left->color == black){
+                        w->color = red;
+                        x = x->parent;
+                    }
+                    else if (w->left->color == black){
+                        w->right->color = black;
+                        w->color = red;
+                        leftRotate(w);
+                    }
+                    else{
+                        w->color = x->parent->color;
+                        x->parent->color = black;
+                        w->left->color = black;
+                        rightRotate(x->parent);
+                        x = root;
+                    }
+
+                }
+            }
+            
+            x->color = black;
+        }
+
+        void delete_node(Node *z){
+            Node *y = z;
+            Node *x;
+            Color oColor;
+
+            y = z;
+            oColor = y->color;
+            if (z->left == nil){
+                x = z->right;
+                rBTransplant(z, z->right);
+            }
+            else if(z->right == nil){
+                x = z->left;
+                rBTransplant(z, z->left);
+            }
+            else{
+                y = treeMinimum(z->right);
+                oColor = y->color;
+                x = y->right;
+                if (y->parent == z)
+                    x->parent = y;
+                else {
+                    rBTransplant(y, y->right);
+                    y->right = z->right;
+                    y->right->parent = y;
+                }
+                rBTransplant(z, y);
+                y->left = z->left;
+                y->left->parent = y;
+                y->color = z->color;
+            }
+            if (oColor == black)
+                rBDeleteFixup(x);
+            alloc.deallocate(z, 1);
+        }
         Node * search(Node *node, T key){
             if (node == NULL || node->value == key)
                 return node;
